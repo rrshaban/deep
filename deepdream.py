@@ -16,8 +16,8 @@ from google.protobuf import text_format
 import caffe
 
 # test if cuda is set up on oil
-caffe.set_mode_gpu()
-caffe.set_device(0)
+# caffe.set_mode_gpu()   # they are, but this slows startup
+# caffe.set_device(0)
 
 def showarray(a, fmt='jpeg'):
     a = np.uint8(np.clip(a, 0, 255))
