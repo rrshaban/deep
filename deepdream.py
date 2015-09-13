@@ -106,7 +106,7 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     return deprocess(net, src.data[0])
 
 img = np.float32(PIL.Image.open('sky1024px.jpg'))
-showarray(img)
+print(img)
 
 # _=deepdream(net, img)
 # _=deepdream(net, img, end='inception_3b/5x5_reduce')
