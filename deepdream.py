@@ -105,8 +105,12 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # returning the resulting image
     return deprocess(net, src.data[0])
 
-img = np.float32(PIL.Image.open('sky1024px.jpg'))
-print(img)
+frame = np.float32(PIL.Image.open('sky1024px.jpg'))
+
+
+frame = deepdream(net, frame, end='inception_3b/5x5_reduce')
+
+PIL.Image.fromarray(np.uint8(frame)).save("output.jpg")
 
 # _=deepdream(net, img)
 # _=deepdream(net, img, end='inception_3b/5x5_reduce')
