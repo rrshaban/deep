@@ -94,7 +94,7 @@ net = caffe.Classifier('tmp.prototxt', param_fn,    # Load the neural network. U
 def preprocess(net, img):
     return np.float32(np.rollaxis(img, 2)[::-1]) - net.transformer.mean['data']
 
-    # rolling the axis switches the structure of the matrix – 
+    # rolling the axis switches the structure of the matrix
     # We go from having Red, Green, and Blue values for each x and y coordinate
     # to having a 3 channels of red, green and blue images.
 
@@ -200,16 +200,13 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # returning the resulting image
     return deprocess(net, src.data[0])
 
-frame = np.float32(PIL.Image.open('sky1024px.jpg'))
+frame = np.float32(PIL.Image.open('overbridge.jpg'))
+showarray (frame)
 
+_ = deepdream(net, frame)
 
-frame = deepdream(net, frame, end='inception_3b/5x5_reduce')
-
-showarray(frame)
-
-
-# _=deepdream(net, img)
-# _=deepdream(net, img, end='inception_3b/5x5_reduce')
+# _ = deepdream(net, frame, end='inception_3b/5x5_reduce')
+# _ = deepdream(net, img, end='inception_3b/5x5_reduce')
 
 
 
