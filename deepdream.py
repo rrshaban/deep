@@ -40,7 +40,7 @@ import caffe                            #     The machine learning framework upo
 
 from datetime import datetime           #     for timestamping
 
-caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
+# caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
                                         #     CuDNN and CUDA, and an NVIDIA card
 
 def save_image(a, f='out', fmt='jpeg', out_path='out/'):           #     IPython helper used to show images in progress
@@ -187,18 +187,19 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
         for i in xrange(iter_n):                                # number of step iterations, specified above
             make_step(net, end=end, clip=clip, **step_params)   # call the function that actually runs the network
             
-            # visualization
-            vis = deprocess(net, src.data[0])       # Convert back to jpg format
-            if not clip:                            # adjust image contrast if clipping is disabled
-                vis = vis*(255.0/np.percentile(vis, 99.98))
-            
-            save_image(vis)
+            print octave, i, end #, vis.shape
 
-            print octave, i, end, vis.shape
-            # clear_output(wait=True) # clear previous input
+
+        # visualization - I unindented this one layer, so we should get fewer output viz. 
+
+        vis = deprocess(net, src.data[0])       # Convert back to jpg format
+        if not clip:                            # adjust image contrast if clipping is disabled
+            vis = vis*(255.0/np.percentile(vis, 99.98))
+        
+        save_image(vis)
             
         # extract details produced on the current octave
-        detail = src.data[0]-octave_base
+        detail = src.data[0] - octave_base
 
     # returning the resulting image
     return deprocess(net, src.data[0])
@@ -207,6 +208,7 @@ frame = np.float32(PIL.Image.open('jpg/overbridge.jpg'))
 
 out = deepdream(net, frame, end='inception_3b/5x5_reduce')
 
+save_image(frame)
 save_image(out)
 
 # _ = deepdream(net, frame, end='inception_3b/5x5_reduce')
