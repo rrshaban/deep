@@ -193,14 +193,14 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
                 vis = vis*(255.0/np.percentile(vis, 99.98))
             showarray(vis)
             print octave, i, end, vis.shape
-            clear_output(wait=True) # clear previous input
+            # clear_output(wait=True) # clear previous input
             
         # extract details produced on the current octave
         detail = src.data[0]-octave_base
     # returning the resulting image
     return deprocess(net, src.data[0])
 
-frame = np.float32(PIL.Image.open('overbridge.jpg'))
+frame = np.float32(PIL.Image.open('jpg/overbridge.jpg'))
 showarray (frame)
 
 _ = deepdream(net, frame)
