@@ -35,19 +35,25 @@ from google.protobuf import text_format #     Inter language data format for our
 
 import caffe                            #     The machine learning framework upon which everything works.
 
+from datetime import datetime           #     for timestamping
+
 caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
                                         #     CuDNN and CUDA, and an NVIDIA card
 
-def showarray(a, fmt='jpeg'):           #     IPython helper used to show images in progress
+def showarray(a, f='out', fmt='jpeg', out_path='out/'):           #     IPython helper used to show images in progress
     
     a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
                                         #     for Red, Green, Blue)
         
-    f = StringIO()                      #     String file handler; I'm outputting differently due to Ipython issues
-                                        #     on lab.cs.swarthmore.edu
+    # f = StringIO()                    #     String file handler; 
 
-    PIL.Image.fromarray(a).save(f, fmt) #     Rather than saving to a file each time, save to our string handler
-    display(Image(data=f.getvalue()))   #     Display the image in our notebook, using the IPython.display, and 
+    timestamp = datetime.utcnow().isoformat().replace(':','_')
+
+    out = out_path + timestamp + '.jpg' #+ fmt      # my Frankenstein to preserve their code 
+
+    # PIL.Image.fromarray(a).save(f, fmt) #     Rather than saving to a file each time, save to our string handler
+    PIL.Image.fromarray(a).save(out)
+    # display(Image(data=f.getvalue()))   #     Display the image in our notebook, using the IPython.display, and 
                                         #     IPython.Image helpers.
 
 
