@@ -19,7 +19,7 @@
 
 import numpy as np                      #     Used to do all the matrix math, with the exception of the zoom
 
-import scipy.ndimage as nd              #     Used to do just the zoom on the images, as we go up the sizes (octaves)
+import scipy.ndimage as nd              #     Used for nd.zoom on the images (octaves) in deepdream()
 import PIL.Image                        #     Used to load images from file, and to save manipulated images back to 
                                         #     files
 
