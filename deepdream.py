@@ -1,104 +1,189 @@
-# 
-# THIS WILL PROBABLY ONLY RUN ON 
-#   oil.cs.swarthmore.edu
-#
-#
-# trying out g's d-dream on oil - RS 9/11/15
+# Google's deepdream python code, with exceptional commentary from 
+# http://www.kpkaiser.com/machine-learning/diving-deeper-into-deep-dreams/
 
-# imports and basic notebook setup
-from cStringIO import StringIO
-import numpy as np
-import scipy.ndimage as nd
-import PIL.Image
+# Other useful resources to explore: 
+
+# Caffe's layers documentation: 
+# http://caffe.berkeleyvision.org/tutorial/layers.html
+
+# http://overstruck.com/how-to-customize-googles-deepdream/
+
+# Step-by-step illustration of the layers:
+# http://hideepdreams.com/post/123387228638/testing-layers-of-googles-deepdreams
+
+# https://www.reddit.com/r/deepdream/comments/3clppv/animations_showing_convergence_of_deepdream/
+
+
+# from cStringIO import StringIO          #     Used to save and display the image in the IPython notebook 
+                                        #      as its generated, used only in showarray()
+
+import numpy as np                      #     Used to do all the matrix math, with the exception of the zoom
+
+import scipy.ndimage as nd              #     Used to do just the zoom on the images, as we go up the sizes (octaves)
+import PIL.Image                        #     Used to load images from file, and to save manipulated images back to 
+                                        #     files
+
 from IPython.display import clear_output, Image, display
-from google.protobuf import text_format
+                                        #     Used to display the images as the neural runs over iterations
 
-import caffe
+from google.protobuf import text_format #     Inter language data format for our blobs. A way to save and load trained
+                                        #     networks in Caffe. Only used to add our 
 
-# test if cuda is set up on oil
-# caffe.set_mode_gpu()   # they are, but this slows startup
-# caffe.set_device(0)   
+import caffe                            #     The machine learning framework upon which everything works.
 
-def showarray(a, fmt='jpeg'):
-    a = np.uint8(np.clip(a, 0, 255))
-    f = StringIO()
-    PIL.Image.fromarray(a).save(f, fmt)
-    display(Image(data=f.getvalue()))
+caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
+                                        #     CuDNN and CUDA, and an NVIDIA card
 
-model_path = '/local/caffe/models/bvlc_googlenet/' # oil.cs.swarthmore.edu:/local
-net_fn   = model_path + 'deploy.prototxt'
-param_fn = model_path + 'bvlc_googlenet.caffemodel'
+def showarray(a, fmt='.jpg'):           #     IPython helper used to show images in progress
+    
+    a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
+                                        #     for Red, Green, Blue)
+        
+    # f = StringIO()                      #     String file handler; I'm outputting differently due to Ipython issues
+                                        #     on lab.cs.swarthmore.edu
 
-model = caffe.io.caffe_pb2.NetParameter()
-text_format.Merge(open(net_fn).read(), model)
-model.force_backward = True
-open('tmp.prototxt', 'w').write(str(model))
+    PIL.Image.fromarray(a).save('output'+ f + fmt) #     Rather than saving to a file each time, save to our string handler
+    display(Image(data=f.getvalue()))   #     Display the image in our notebook, using the IPython.display, and 
+                                        #     IPython.Image helpers.
 
 
-net = caffe.Classifier('tmp.prototxt', param_fn,
+
+
+
+model_path = '/local/caffe/models/googlenet_places205/' # oil.cs.swarthmore.edu:/local
+net_fn   = model_path + 'deploy.prototxt'           # specifies the neural network's layers and their arrangement
+                                                    # we load this and patch it to add the force backward below
+
+param_fn = model_path + 'googlelet_places205_train_iter_2400000.caffemodel'  # this isn't the original dataset but 
+                                                                             # a different one (places)
+
+# Patching model to be able to compute gradients.
+# Note that you can also manually add "force_backward: true" line to "deploy.prototxt".
+
+model = caffe.io.caffe_pb2.NetParameter()           # Load the empty protobuf model,
+text_format.Merge(open(net_fn).read(), model)       # Load the prototxt and load it into empty model
+model.force_backward = True                         # Add the force_backward: true line
+open('tmp.prototxt', 'w').write(str(model))         # Save it to a new file called tmp.prototxt
+
+net = caffe.Classifier('tmp.prototxt', param_fn,    # Load the neural network. Using the prototxt from above
                        mean = np.float32([104.0, 116.0, 122.0]), # ImageNet mean, training set dependent
-                       channel_swap = (2,1,0)) # the reference model has channels in BGR order instead of RGB
+                       channel_swap = (2,1,0))      # the reference model has channels in BGR order instead of RGB
 
+# The above code loads up our neural network, but there are a few interesting things to note. 
+
+# -> param_fn - our trained neural network blob
+
+# -> mean - the RGB average of our images. we will later subtract and then add this back to our model.
+#           interesting changes can be made by changing these numbers, and for the places dataset, the
+#           numbers above are actually wrong. I couldn't find the proper mean for it. [I couldn't either - RS]
+
+# -> channel_swap - different order of values, with Blue, Green and Red as the matrix order. switches it
+#                   to Red, Green, Blue
+ 
 # a couple of utility functions for converting to and from Caffe's input image layout
 def preprocess(net, img):
     return np.float32(np.rollaxis(img, 2)[::-1]) - net.transformer.mean['data']
+
+    # rolling the axis switches the structure of the matrix – 
+    # We go from having Red, Green, and Blue values for each x and y coordinate
+    # to having a 3 channels of red, green and blue images.
+
+# Now this function above is a doozie. Don't let its shortness deceive you, it's doing a lot.
+# net.transformer.mean['data'] is our image mean we discussed above. it's being subtracted from
+# np.float32(np.rollaxis(img, 2)[::-1]). This function warrants a discussion about numpy. I'll 
+# dive deeper into it below. [He discusses this with examples in the article - RS]
+
 def deprocess(net, img):
     return np.dstack((img + net.transformer.mean['data'])[::-1])
 
-def objective_L2(dst):
-    dst.diff[:] = dst.data 
+# This function does the reverse of preprocess, and I'll go over how it works below too. But 
+# both these functions warrant talking about how they work.
 
-def make_step(net, step_size=1.5, end='inception_4c/output', 
-              jitter=32, clip=True, objective=objective_L2):
-    '''Basic gradient ascent step.'''
+def preprocesswithoutmean(img):
+    return np.float32(np.rollaxis(img, 2)[::-1]) # see preprocess() for explanation
+
+def deprocesswithoutmean(img):
+    return np.dstack(img[::-1])
+
+
+def objective_L2(dst):          # Our training objective. Google has since released a way to load
+    dst.diff[:] = dst.data      # arbitrary objectives from other images. [Explanation of this in the article - RS]
+
+
+def make_step(net, step_size=1.5, end='inception_4b/3x3',      
+              jitter=32, clip=True, objective=objective_L2):    #  This end layer differs from the original Google deepdream
+              '''Basic gradient ascent step.'''                 #  in order to match the places dataset
 
     src = net.blobs['data'] # input image is stored in Net's 'data' blob
-    dst = net.blobs[end]
+    dst = net.blobs[end]    # destination is the end layer specified above
 
-    ox, oy = np.random.randint(-jitter, jitter+1, 2)
+                            # The end layer is the name of the layer or blob (as some call it) at which to stop
+                            # For explanation of the layer structure of the model, check out
+                            # http://overstruck.com/how-to-customize-googles-deepdream/
+
+                            # Step-by-step illustration of the layers:
+                            # http://hideepdreams.com/post/123387228638/testing-layers-of-googles-deepdreams
+
+    # Jitter is well-explained in the article with illustrative examples. Jitter just
+    # shifts the image over a few pixels with some degree of randomness, introducing 
+    # randomness to gradient descent. 
+
+    ox, oy = np.random.randint(-jitter, jitter+1, 2)            # generate random jitter
     src.data[0] = np.roll(np.roll(src.data[0], ox, -1), oy, -2) # apply jitter shift
             
-    net.forward(end=end)
-    objective(dst)  # specify the optimization objective
-    net.backward(start=end)
-    g = src.diff[0]
-    # apply normalized ascent step to the input image
-    src.data[:] += step_size/np.abs(g).mean() * g
+    # Forward and backward passes: http://caffe.berkeleyvision.org/tutorial/forward_backward.html
 
-    src.data[0] = np.roll(np.roll(src.data[0], -ox, -1), -oy, -2) # unshift image
+    net.forward(end=end)     # This is how the network computes, make sure we stop on the chosen neural layer
+    objective(dst)           # specify the optimization objective
+    net.backward(start=end)  # Do backwards propagation, so we can compute how off we were 
+    g = src.diff[0]          
+    
+    # apply normalized ascent step to the input image
+    src.data[:] += step_size/np.abs(g).mean() * g # get closer to our target data
+
+    src.data[0] = np.roll(np.roll(src.data[0], -ox, -1), -oy, -2) # unshift image jitter
             
-    if clip:
-        bias = net.transformer.mean['data']
-        src.data[:] = np.clip(src.data, -bias, 255-bias)    
+    if clip:                                              # If clipping is enabled
+        bias = net.transformer.mean['data']               # Subtract our image mean
+        src.data[:] = np.clip(src.data, -bias, 255-bias)  # clip our matrix to the values
+
+
 
 def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4, 
-              end='inception_4c/output', clip=True, **step_params):
+              end='inception_4b/3x3', clip=True, **step_params):
     # prepare base images for all octaves
-    octaves = [preprocess(net, base_img)]
+    octaves = [preprocess(net, base_img)]   # So, the octaves is an array of images, initialized 
+                                            # with the original image transformed into caffe's format
     for i in xrange(octave_n-1):
         octaves.append(nd.zoom(octaves[-1], (1, 1.0/octave_scale,1.0/octave_scale), order=1))
     
-    src = net.blobs['data']
-    detail = np.zeros_like(octaves[-1]) # allocate image for network-produced details
-    for octave, octave_base in enumerate(octaves[::-1]):
-        h, w = octave_base.shape[-2:]
-        if octave > 0:
+    # Okay, so this creates smaller versions of the images, and appends them to the array of images.
+    # One image for each octave.
+    
+    src = net.blobs['data']             # Again, copy the original image.
+    detail = np.zeros_like(octaves[-1]) # Allocate image for network-produced details.
+                                        # This creates a matrix shaped like our image, 
+                                        # but fills it with zeroes.
+
+    for octave, octave_base in enumerate(octaves[::-1]): # Iterate over the reversed list of images (smallest first)
+        h, w = octave_base.shape[-2:]                    # Take the width and height of the current image
+        if octave > 0:  # If it's not the smallest octave
             # upscale details from the previous octave
             h1, w1 = detail.shape[-2:]
-            detail = nd.zoom(detail, (1, 1.0*h/h1,1.0*w/w1), order=1)
+            detail = nd.zoom(detail, (1, 1.0*h/h1,1.0*w/w1), order=1) # Zoom in on the image detail, interpolate
 
         src.reshape(1,3,h,w) # resize the network's input image size
-        src.data[0] = octave_base+detail
-        for i in xrange(iter_n):
-            make_step(net, end=end, clip=clip, **step_params)
+        src.data[0] = octave_base+detail # Add the changed details to the image
+        for i in xrange(iter_n):  # number of step iterations, specified above
+            make_step(net, end=end, clip=clip, **step_params) # call the function that actually runs the network
             
             # visualization
-            vis = deprocess(net, src.data[0])
+            vis = deprocess(net, src.data[0]) # Convert back to jpg format
             if not clip: # adjust image contrast if clipping is disabled
                 vis = vis*(255.0/np.percentile(vis, 99.98))
             showarray(vis)
             print octave, i, end, vis.shape
-            clear_output(wait=True)
+            clear_output(wait=True) # clear previous input
             
         # extract details produced on the current octave
         detail = src.data[0]-octave_base
@@ -110,7 +195,8 @@ frame = np.float32(PIL.Image.open('sky1024px.jpg'))
 
 frame = deepdream(net, frame, end='inception_3b/5x5_reduce')
 
-PIL.Image.fromarray(np.uint8(frame)).save("output.jpg")
+showarray(frame)
+
 
 # _=deepdream(net, img)
 # _=deepdream(net, img, end='inception_3b/5x5_reduce')
