@@ -22,7 +22,7 @@
 
 
 from cStringIO import StringIO          #     Used to save and display the image in the IPython notebook 
-                                        #      as its generated, used only in showarray()
+                                        #      as its generated, used only in save_image()
 
 import numpy as np                      #     Used to do all the matrix math, with the exception of the zoom
 
@@ -43,7 +43,7 @@ from datetime import datetime           #     for timestamping
 caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
                                         #     CuDNN and CUDA, and an NVIDIA card
 
-def showarray(a, f='out', fmt='jpeg', out_path='out/'):           #     IPython helper used to show images in progress
+def save_image(a, f='out', fmt='jpeg', out_path='out/'):           #     IPython helper used to show images in progress
     
     a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
                                         #     for Red, Green, Blue)
@@ -182,28 +182,32 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
             h1, w1 = detail.shape[-2:]
             detail = nd.zoom(detail, (1, 1.0*h/h1,1.0*w/w1), order=1) # Zoom in on the image detail, interpolate
 
-        src.reshape(1,3,h,w) # resize the network's input image size
-        src.data[0] = octave_base+detail # Add the changed details to the image
-        for i in xrange(iter_n):  # number of step iterations, specified above
-            make_step(net, end=end, clip=clip, **step_params) # call the function that actually runs the network
+        src.reshape(1,3,h,w)                                    # resize the network's input image size
+        src.data[0] = octave_base+detail                        # Add the changed details to the image
+        for i in xrange(iter_n):                                # number of step iterations, specified above
+            make_step(net, end=end, clip=clip, **step_params)   # call the function that actually runs the network
             
             # visualization
-            vis = deprocess(net, src.data[0]) # Convert back to jpg format
-            if not clip: # adjust image contrast if clipping is disabled
+            vis = deprocess(net, src.data[0])       # Convert back to jpg format
+            if not clip:                            # adjust image contrast if clipping is disabled
                 vis = vis*(255.0/np.percentile(vis, 99.98))
-            showarray(vis)
+            
+            save_image(vis)
+
             print octave, i, end, vis.shape
             # clear_output(wait=True) # clear previous input
             
         # extract details produced on the current octave
         detail = src.data[0]-octave_base
+
     # returning the resulting image
     return deprocess(net, src.data[0])
 
 frame = np.float32(PIL.Image.open('jpg/overbridge.jpg'))
-showarray (frame)
 
-_ = deepdream(net, frame)
+out = deepdream(net, frame, end='inception_3b/5x5_reduce')
+
+save_image(out)
 
 # _ = deepdream(net, frame, end='inception_3b/5x5_reduce')
 # _ = deepdream(net, img, end='inception_3b/5x5_reduce')
