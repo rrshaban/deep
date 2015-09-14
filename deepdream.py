@@ -17,6 +17,9 @@
 # Step-by-step illustration of the layers:
 # http://hideepdreams.com/post/123387228638/testing-layers-of-googles-deepdreams
 
+# Curious why the layers are called Inception? 
+# http://arxiv.org/pdf/1409.4842.pdf
+
 
 from cStringIO import StringIO          #     Used to save and display the image in the IPython notebook 
                                         #      as its generated, used only in showarray()
@@ -132,8 +135,8 @@ def make_step(net, step_size=1.5, end='inception_4b/3x3',
                             # http://hideepdreams.com/post/123387228638/testing-layers-of-googles-deepdreams
 
     # Jitter is well-explained in the article with illustrative examples. Jitter just
-    # shifts the image over a few pixels with some degree of randomness, introducing 
-    # randomness to gradient descent. 
+    # shifts the image over a few pixels with some degree of randomness
+    # jpg/exploring.jpg + jitter = jpg/fixed_exploring.jpg
 
     ox, oy = np.random.randint(-jitter, jitter+1, 2)            # generate random jitter
     src.data[0] = np.roll(np.roll(src.data[0], ox, -1), oy, -2) # apply jitter shift
