@@ -3,18 +3,22 @@
 
 # Other useful resources to explore: 
 
+# http://overstruck.com/how-to-customize-googles-deepdream/
+
+
+# CURIOUS ABOUT LAYERS?
+
 # Caffe's layers documentation: 
 # http://caffe.berkeleyvision.org/tutorial/layers.html
 
-# http://overstruck.com/how-to-customize-googles-deepdream/
+# Beautiful visualization of the effects of each layer:
+# https://www.reddit.com/r/deepdream/comments/3clppv/animations_showing_convergence_of_deepdream/
 
 # Step-by-step illustration of the layers:
 # http://hideepdreams.com/post/123387228638/testing-layers-of-googles-deepdreams
 
-# https://www.reddit.com/r/deepdream/comments/3clppv/animations_showing_convergence_of_deepdream/
 
-
-# from cStringIO import StringIO          #     Used to save and display the image in the IPython notebook 
+from cStringIO import StringIO          #     Used to save and display the image in the IPython notebook 
                                         #      as its generated, used only in showarray()
 
 import numpy as np                      #     Used to do all the matrix math, with the exception of the zoom
@@ -34,20 +38,17 @@ import caffe                            #     The machine learning framework upo
 caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
                                         #     CuDNN and CUDA, and an NVIDIA card
 
-def showarray(a, fmt='.jpg'):           #     IPython helper used to show images in progress
+def showarray(a, fmt='jpeg'):           #     IPython helper used to show images in progress
     
     a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
                                         #     for Red, Green, Blue)
         
-    # f = StringIO()                      #     String file handler; I'm outputting differently due to Ipython issues
+    f = StringIO()                      #     String file handler; I'm outputting differently due to Ipython issues
                                         #     on lab.cs.swarthmore.edu
 
-    PIL.Image.fromarray(a).save('output'+ f + fmt) #     Rather than saving to a file each time, save to our string handler
+    PIL.Image.fromarray(a).save(f, fmt) #     Rather than saving to a file each time, save to our string handler
     display(Image(data=f.getvalue()))   #     Display the image in our notebook, using the IPython.display, and 
                                         #     IPython.Image helpers.
-
-
-
 
 
 model_path = '/local/caffe/models/googlenet_places205/' # oil.cs.swarthmore.edu:/local
@@ -112,7 +113,7 @@ def objective_L2(dst):          # Our training objective. Google has since relea
 
 def make_step(net, step_size=1.5, end='inception_4b/3x3',      
               jitter=32, clip=True, objective=objective_L2):    #  This end layer differs from the original Google deepdream
-              '''Basic gradient ascent step.'''                 #  in order to match the places dataset
+    '''Basic gradient ascent step.'''                           #  in order to match the places dataset
 
     src = net.blobs['data'] # input image is stored in Net's 'data' blob
     dst = net.blobs[end]    # destination is the end layer specified above
