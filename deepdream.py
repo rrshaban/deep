@@ -60,7 +60,7 @@ def save_image(a, f='out', fmt='jpeg', out_path='out/'):           #     IPython
                                         #     IPython.Image helpers.
 
 
-model_path = '/local/caffe/models/googlenet_places205/' # oil.cs.swarthmore.edu:/local
+model_path = 'models/googlenet_places205/' # oil.cs.swarthmore.edu:/local
 net_fn   = model_path + 'deploy.prototxt'           # specifies the neural network's layers and their arrangement
                                                     # we load this and patch it to add the force backward below
 
