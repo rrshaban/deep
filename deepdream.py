@@ -40,27 +40,26 @@ import caffe                            #     The machine learning framework upo
 
 from datetime import datetime           #     for timestamping
 
-caffe.set_mode_gpu()                  #     Uncomment to put computation on GPU. You'll need caffe built with 
-caffe.set_device(0);                                        #     CuDNN and CUDA, and an NVIDIA card
+caffe.set_mode_gpu()                    #     Uncomment to put computation on GPU. You'll need caffe built with 
+caffe.set_device(0);                    #     CuDNN and CUDA, and an NVIDIA card
 
-def save_image(a, f='out', fmt='jpeg', out_path='out/'):           #     IPython helper used to show images in progress
+def save_image(a, f='out', fmt='jpeg', out_path='out/'):
     
     a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
                                         #     for Red, Green, Blue)
-        
-    # f = StringIO()                    #     String file handler; 
 
-    timestamp = datetime.utcnow().isoformat().replace(':','_')
+    if f == 'out':
+        f = datetime.utcnow().isoformat().replace(':','_')
 
-    out = out_path + timestamp + '.jpg' #+ fmt      # my Frankenstein to preserve their code 
+    out = out_path + f.replace('/','_') + '.jpg'    # allows us to feed either the layer name or timestamp as filename
 
-    # PIL.Image.fromarray(a).save(f, fmt) #     Rather than saving to a file each time, save to our string handler
     PIL.Image.fromarray(a).save(out)
-    # display(Image(data=f.getvalue()))   #     Display the image in our notebook, using the IPython.display, and 
+
+    # display(Image(data=f.getvalue())) #     Display the image in our notebook, using the IPython.display, and 
                                         #     IPython.Image helpers.
 
 
-model_path = 'models/googlenet_places205/' # oil.cs.swarthmore.edu:/local
+model_path = 'models/googlenet_places205/'          # oil.cs.swarthmore.edu:/local
 net_fn   = model_path + 'deploy.prototxt'           # specifies the neural network's layers and their arrangement
                                                     # we load this and patch it to add the force backward below
 
@@ -189,12 +188,12 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
             
             print octave, i, end #, vis.shape
 
-            # visualization 
-            vis = deprocess(net, src.data[0])       # Convert back to jpg format
-            if not clip:                            # adjust image contrast if clipping is disabled
-                vis = vis*(255.0/np.percentile(vis, 99.98))
+            # # visualization - this will sometimes be commented out if we don't want output every octave
+            # vis = deprocess(net, src.data[0])       # Convert back to jpg format
+            # if not clip:                            # adjust image contrast if clipping is disabled
+            #     vis = vis*(255.0/np.percentile(vis, 99.98))
             
-            save_image(vis)
+            # save_image(vis)
             
         # extract details produced on the current octave
         detail = src.data[0] - octave_base
@@ -202,12 +201,15 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # returning the resulting image
     return deprocess(net, src.data[0])
 
-frame = np.float32(PIL.Image.open('jpg/overbridge.jpg'))
+frame = np.float32(PIL.Image.open('jpg/ap.jpg'))
 
-out = deepdream(net, frame, octave_n=2, end='inception_5b/5x5_reduce')
+print net.blobs.keys()
 
-# save_image(frame)
-# save_image(out)
+for i in net.blobs.keys()[1:]:      # every layer in the system
+    if "split" not in i:            # except layers like '{}/output_0_split_0', which break for some reason
+        save_image(deepdream(net, frame, octave_n=2, end=i), f=i, out_path='out/ap/')
+
+# save_image(deepdream(net, frame, octave_n=2, end='inception_5a/3x3_reduce'), f='inception_5a/3x3_reduce')
 
 # _ = deepdream(net, frame, end='inception_3b/5x5_reduce')
 # _ = deepdream(net, img, end='inception_3b/5x5_reduce')
