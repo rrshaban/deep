@@ -204,13 +204,13 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # returning the resulting image
     return deprocess(net, src.data[0])
 
-frame = np.float32(PIL.Image.open('jpg/ap.jpg'))
+frame = np.float32(PIL.Image.open('jpg/sci_center.jpg'))
 
 print net.blobs.keys()
 
 for i in net.blobs.keys()[1:]:      # every layer in the system
     if "split" not in i:            # except layers like '{}/output_0_split_0', which break for some reason
-        save_image(deepdream(net, frame, octave_n=2, end=i), f=i, out_path='out/bvlc_googlenet_2o/')
+        save_image(deepdream(net, frame, octave_n=4, end=i), f=i, out_path='out/sci_center/')
 
 # save_image(deepdream(net, frame, octave_n=2, end='inception_5a/3x3_reduce'), f='inception_5a/3x3_reduce')
 
