@@ -59,7 +59,7 @@ def save_image(a, f='out', fmt='jpeg', out_path='out/'):
                                         #     IPython.Image helpers.
 
 
-m = [('models/bvlc_alexnet',            'bvlc_alexnet.caffemodel'),
+m = [('models/bvlc_googlenet/',         'bvlc_googlenet.caffemodel'),
      ('models/googlenet_places205/',    'googlelet_places205_train_iter_2400000.caffemodel'),
     ]
 
@@ -210,7 +210,7 @@ print net.blobs.keys()
 
 for i in net.blobs.keys()[1:]:      # every layer in the system
     if "split" not in i:            # except layers like '{}/output_0_split_0', which break for some reason
-        save_image(deepdream(net, frame, octave_n=6, end=i), f=i, out_path='out/bvlc_alexnet_6o/')
+        save_image(deepdream(net, frame, octave_n=2, end=i), f=i, out_path='out/bvlc_googlenet_2o/')
 
 # save_image(deepdream(net, frame, octave_n=2, end='inception_5a/3x3_reduce'), f='inception_5a/3x3_reduce')
 
