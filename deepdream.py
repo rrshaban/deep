@@ -59,12 +59,15 @@ def save_image(a, f='out', fmt='jpeg', out_path='out/'):
                                         #     IPython.Image helpers.
 
 
-model_path = 'models/googlenet_places205/'          # oil.cs.swarthmore.edu:/local
+m = [('models/bvlc_alexnet',            'bvlc_alexnet.caffemodel'),
+     ('models/googlenet_places205/',    'googlelet_places205_train_iter_2400000.caffemodel'),
+    ]
+
+model_path = m[0][0]
 net_fn   = model_path + 'deploy.prototxt'           # specifies the neural network's layers and their arrangement
                                                     # we load this and patch it to add the force backward below
 
-param_fn = model_path + 'googlelet_places205_train_iter_2400000.caffemodel'  # this isn't the original dataset but 
-                                                                             # a different one (places)
+param_fn = model_path + m[0][1]
 
 # Patching model to be able to compute gradients.
 # Note that you can also manually add "force_backward: true" line to "deploy.prototxt".
@@ -207,7 +210,7 @@ print net.blobs.keys()
 
 for i in net.blobs.keys()[1:]:      # every layer in the system
     if "split" not in i:            # except layers like '{}/output_0_split_0', which break for some reason
-        save_image(deepdream(net, frame, octave_n=2, end=i), f=i, out_path='out/ap/')
+        save_image(deepdream(net, frame, octave_n=6, end=i), f=i, out_path='out/bvlc_alexnet_6o/')
 
 # save_image(deepdream(net, frame, octave_n=2, end='inception_5a/3x3_reduce'), f='inception_5a/3x3_reduce')
 
