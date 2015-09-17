@@ -43,31 +43,21 @@ from datetime import datetime           #     for timestamping
 caffe.set_mode_gpu()                    #     Uncomment to put computation on GPU. You'll need caffe built with 
 caffe.set_device(0);                    #     CuDNN and CUDA, and an NVIDIA card
 
-def save_image(a, f='out', fmt='jpeg', out_path='out/'):
-    
-    a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
-                                        #     for Red, Green, Blue)
 
-    if f == 'out':
-        f = datetime.utcnow().isoformat().replace(':','_')
+model_root = '/scratch/rshaban1/models/'
 
-    out = out_path + f.replace('/','_') + '.jpg'    # allows us to feed either the layer name or timestamp as filename
+m = {
+    'bvlc_googlenet':       ('bvlc_googlenet/', 'bvlc_googlenet.caffemodel', 'deploy.prototxt'),
+    'googlenet_places205':  ('googlenet_places205/', 'googlelet_places205_train_iter_2400000.caffemodel', 'deploy.prototxt'),
+    'vgg_16':               ('vgg_16/', 'VGG_ILSVRC_16_layers.caffemodel', 'VGG_ILSVRC_16_layers_deploy.prototxt'),
+    'vgg_19':               ('vgg_19/', 'VGG_ILSVRC_19_layers.caffemodel', 'VGG_ILSVRC_19_layers_deploy.prototxt'),
+    }
 
-    PIL.Image.fromarray(a).save(out)
-
-    # display(Image(data=f.getvalue())) #     Display the image in our notebook, using the IPython.display, and 
-                                        #     IPython.Image helpers.
-
-
-m = [('models/bvlc_googlenet/',         'bvlc_googlenet.caffemodel'),
-     ('models/googlenet_places205/',    'googlelet_places205_train_iter_2400000.caffemodel'),
-    ]
-
-model_path = m[0][0]
-net_fn   = model_path + 'deploy.prototxt'           # specifies the neural network's layers and their arrangement
+odel = 'vgg_16'
+model_path = model_root + m[odel][0]
+param_fn   = model_path + m[odel][1]
+net_fn     = model_path + m[odel][2]      # specifies the neural network's layers and their arrangement
                                                     # we load this and patch it to add the force backward below
-
-param_fn = model_path + m[0][1]
 
 # Patching model to be able to compute gradients.
 # Note that you can also manually add "force_backward: true" line to "deploy.prototxt".
@@ -120,6 +110,21 @@ def deprocesswithoutmean(img):
 
 def objective_L2(dst):          # Our training objective. Google has since released a way to load
     dst.diff[:] = dst.data      # arbitrary objectives from other images. [Explanation of this in the article - RS]
+
+
+def save_image(a, f='out', fmt='jpeg', out_path='out/'):
+    
+    a = np.uint8(np.clip(a, 0, 255))    #     Convert and clip our matrix into the jpeg constraints (0-255 values
+                                        #     for Red, Green, Blue)
+    if f == 'out':
+        f = datetime.utcnow().isoformat().replace(':','_')
+
+    out = out_path + f.replace('/','_') + '.jpg'    # allows us to feed either the layer name or timestamp as filename
+
+    PIL.Image.fromarray(a).save(out)
+
+    # display(Image(data=f.getvalue())) #     Display the image in our notebook, using the IPython.display, and 
+                                        #     IPython.Image helpers.
 
 
 def make_step(net, step_size=1.5, end='inception_4b/3x3',      
@@ -210,7 +215,7 @@ print net.blobs.keys()
 
 for i in net.blobs.keys()[1:]:      # every layer in the system
     if "split" not in i:            # except layers like '{}/output_0_split_0', which break for some reason
-        save_image(deepdream(net, frame, octave_n=4, end=i), f=i, out_path='out/sci_center/')
+        save_image(deepdream(net, frame, octave_n=4, end=i), f=i, out_path='out/vgg_16/')
 
 # save_image(deepdream(net, frame, octave_n=2, end='inception_5a/3x3_reduce'), f='inception_5a/3x3_reduce')
 
