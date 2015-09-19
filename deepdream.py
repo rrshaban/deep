@@ -209,7 +209,7 @@ def deepdream(net, base_img, iter_n=10, octave_n=4, octave_scale=1.4,
     # returning the resulting image
     return deprocess(net, src.data[0])
 
-frame = np.float32(PIL.Image.open('jpg/sci_center.jpg'))
+frame = np.float32(PIL.Image.open('jpg/ap.jpg'))
 
 print net.blobs.keys()
 
