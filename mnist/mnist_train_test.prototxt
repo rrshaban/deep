@@ -6,7 +6,6 @@ layer {
   top: "label"
   include {
     phase: TRAIN
-    stage: "train"
   }
   transform_param {
     scale: 0.00390625
@@ -24,7 +23,6 @@ layer {
   top: "label"
   include {
     phase: TEST
-    stage: "test"
   }
   transform_param {
     scale: 0.00390625
