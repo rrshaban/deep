@@ -24,8 +24,17 @@ def lenet(lmdb, batch_size):
     n.loss = L.SoftmaxWithLoss(n.ip2, n.label)
     return n.to_proto()
 
-with open('mnist/lenet_auto_train.prototxt', 'w') as f:
-    f.write(str(lenet('mnist/mnist_train_lmdb', 64)))
+def autoencoder():
+    n = caffe.NetSpec()
+    n.data, n.label=L.Data(batch_size=100, backend=P.Data.LMDB, source=lmdb,
+                            transform_param=dict(scale=1./255), ntop=2)
+
+    return n.to_proto()
+
+print str(autoencoder)
+
+# with open('mnist/lenet_auto_train.prototxt', 'w') as f:
+#     f.write(str(lenet('mnist/mnist_train_lmdb', 64)))
     
-with open('mnist/lenet_auto_test.prototxt', 'w') as f:
-    f.write(str(lenet('mnist/mnist_test_lmdb', 100)))
+# with open('mnist/lenet_auto_test.prototxt', 'w') as f:
+#     f.write(str(lenet('mnist/mnist_test_lmdb', 100)))
