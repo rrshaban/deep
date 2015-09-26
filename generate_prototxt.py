@@ -45,13 +45,58 @@ def autoencoder():
 
     return n.to_proto()
 
+def first_cnn():
+
+    n = caffe.NetSpec()
+
+    n.data, n.label = L.Data(batch_size=100, backend=P.Data.LMDB, source='/scratch/rshaban1/models/cifar10/cifar10_train_lmdb',
+                            transform_param={'mean_file': '/scratch/rshaban1/lmdb/mean_cifar10.binaryproto'}, ntop=2)
+
+    # CONV - RELU
+    n.conv1 = L.Convolution(n.data, kernel_size=5, num_output=64, weight_filler={'type': 'xavier'})
+    n.relu1 = L.ReLU(n.conv1, in_place=True)
+
+    # CONV - RELU
+    n.conv2 = L.Convolution(n.relu1, kernel_size=3, num_output=64, weight_filler={'type': 'xavier'})
+    n.relu2 = L.ReLU(n.conv2, in_place=True)
+
+    # POOL
+    n.pool1 = L.Pooling(n.relu2, kernel_size=2, stride=2, pool=P.Pooling.MAX)
+
+
+    # CONV - RELU
+    n.conv3 = L.Convolution(n.pool1, kernel_size=5, num_output=64, weight_filler={'type': 'xavier'})
+    n.relu3 = L.ReLU(n.conv3, in_place=True)
+
+    # CONV - RELU
+    n.conv4 = L.Convolution(n.relu3, kernel_size=3, num_output=64, weight_filler={'type': 'xavier'})
+    n.relu4 = L.ReLU(n.conv4, in_place=True)
+
+    # POOL
+    n.pool2 = L.Pooling(n.relu4, kernel_size=2, stride=2, pool=P.Pooling.MAX)
+
+
+    # FULLY-CONNECTED
+    n.full1 = L.InnerProduct(n.pool2, num_output=10, weight_filler={'type': 'xavier'})
+
+    n.loss = L.SoftmaxWithLoss(n.full1, n.label)
+
+    return n.to_proto()
+
+    
+
 # with open('mnist/lenet_auto_train.prototxt', 'w') as f:
 #     f.write(str(lenet('mnist/mnist_train_lmdb', 64)))
     
 # with open('mnist/lenet_auto_test.prototxt', 'w') as f:
 #     f.write(str(lenet('mnist/mnist_test_lmdb', 100)))
 
-with open('mnist/autoencoder.prototxt', 'w') as f:
-    f.write(str(autoencoder()))
+# with open('mnist/autoencoder.prototxt', 'w') as f:
+#     f.write(str(autoencoder()))
 
-# print autoencoder()
+print str(first_cnn())
+
+
+
+
+
