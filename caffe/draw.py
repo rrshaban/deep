@@ -8,8 +8,8 @@ Caffe network visualization: draw the NetParameter protobuffer.
     it requires graphviz and other prerequisites outside the scope of the
     Caffe.
 """
-
-from caffe.proto import caffe_pb2
+import caffe
+#from caffe.proto import caffe_pb2
 import pydot
 
 # Internal layer and blob styles.
