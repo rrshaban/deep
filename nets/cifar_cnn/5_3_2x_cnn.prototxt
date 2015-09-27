@@ -144,10 +144,19 @@ layer {
   }
 }
 layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "full1"
+  bottom: "label"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+}
+layer {
   name: "loss"
   type: "SoftmaxWithLoss"
   bottom: "full1"
   bottom: "label"
   top: "loss"
 }
-
