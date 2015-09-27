@@ -2,7 +2,7 @@
 # then another factor of 10 after 10 more epochs (5000 iters)
 
 # The train/test net protocol buffer definition
-net: "/home/rshaban1/deep/nets/cifar_cnn/5_3_2x_cnn.prototxt"
+net: "nets/cifar_cnn/5_3_2x_cnn.prototxt"
 # test_iter specifies how many forward passes the test should carry out.
 # In the case of CIFAR10, we have test batch size 100 and 100 test iterations,
 # covering the full 10,000 testing images.
@@ -22,6 +22,6 @@ max_iter: 60000
 # snapshot intermediate results
 snapshot: 5000
 snapshot_format: HDF5
-snapshot_prefix: "~/deep/models/5_3_cnn"
+snapshot_prefix: "/scratch/rshaban1/models/5_3_cnn"
 # solver mode: CPU or GPU
 solver_mode: GPU
