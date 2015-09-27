@@ -4,9 +4,6 @@ layer {
   type: "Data"
   top: "data"
   top: "label"
-  transform_param {
-    mean_file: "/scratch/rshaban1/lmdb/mean_cifar10.binaryproto"
-  }
   data_param {
     source: "/scratch/rshaban1/models/cifar10/cifar10_train_lmdb"
     batch_size: 100

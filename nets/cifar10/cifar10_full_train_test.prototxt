@@ -11,7 +11,7 @@ layer {
     mean_file: "/scratch/rshaban1/models/cifar10/mean.binaryproto"
   }
   data_param {
-    source: "/scratch/rshaban1/models/cifar10/cifar10_train_lmdb"
+    source: "/scratch/rshaban1/lmdb/cifar10_train_lmdb"
     batch_size: 100
     backend: LMDB
   }
@@ -28,7 +28,7 @@ layer {
     mean_file: "/scratch/rshaban1/models/cifar10/mean.binaryproto"
   }
   data_param {
-    source: "/scratch/rshaban1/models/cifar10/cifar10_test_lmdb"
+    source: "/scratch/rshaban1/lmdb/cifar10_test_lmdb"
     batch_size: 100
     backend: LMDB
   }
