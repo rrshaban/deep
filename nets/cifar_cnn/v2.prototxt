@@ -200,7 +200,7 @@ layer {
 layer {
   name: "inception_3a/1x1"
   type: "Convolution"
-  bottom: "full1"
+  bottom: "pool4"
   top: "inception_3a/1x1"
   param {
     lr_mult: 1
@@ -231,7 +231,7 @@ layer {
 layer {
   name: "inception_3a/3x3_reduce"
   type: "Convolution"
-  bottom: "full1"
+  bottom: "pool4"
   top: "inception_3a/3x3_reduce"
   param {
     lr_mult: 1
@@ -294,7 +294,7 @@ layer {
 layer {
   name: "inception_3a/5x5_reduce"
   type: "Convolution"
-  bottom: "full1"
+  bottom: "pool4"
   top: "inception_3a/5x5_reduce"
   param {
     lr_mult: 1
@@ -357,7 +357,7 @@ layer {
 layer {
   name: "inception_3a/pool"
   type: "Pooling"
-  bottom: "full1"
+  bottom: "pool4"
   top: "inception_3a/pool"
   pooling_param {
     pool: MAX
