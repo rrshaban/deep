@@ -21,7 +21,6 @@ display: 500
 max_iter: 20000
 # snapshot intermediate results
 snapshot: 5000
-snapshot_format: HDF5
 snapshot_prefix: "/scratch/rshaban1/models/v1_"
 # solver mode: CPU or GPU
 solver_mode: GPU
